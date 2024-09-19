@@ -1,21 +1,9 @@
-FROM openjdk:11 AS BUILD_IMAGE
-
-RUN apt update && apt install maven -y
-
-RUN git clone https://github.com/devopshydclub/vprofile-project.git
-
-RUN cd vprofile-project && git checkout docker && mvn install
-
-
-FROM tomcat:9-jre11
+FROM mysql:8.0.33
 
 LABEL "Project"="vprofile"
 LABEL "Author"="mahesh"
 
-RUN rm -rf /usr/local/tomcat/webapps/*
+ENV MYSQL_ROOT_PASSWORD="vprodbpass"
+ENV MYSQL_DATABASE="accounts"
 
-COPY --from=BUILD_IMAGE vprofile-project/target/vprofile-v2.war /usr/local/tomcat/webapps/ROOT.war
-
-EXPOSE 8080
-
-CMD ["catalina.sh", "run"]
+ADD db_backup.sql docker-entrypoint-initdb.d/db_backup.sql
